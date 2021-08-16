@@ -8,6 +8,7 @@ import com.je.demo.testcontainers.domain.todo.model.Todo
 import com.je.demo.testcontainers.domain.todo.repository.TodoRepository
 import com.je.demo.testcontainers.domain.todo.usecase.CreateTodoUseCase
 import com.je.demo.testcontainers.domain.todo.usecase.GetTodoUseCase
+import org.slf4j.LoggerFactory
 import org.springframework.core.convert.converter.Converter
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
@@ -17,9 +18,14 @@ class TodoService(
     private val createTodoDtoToTodoConverter: Converter<CreateTodoDto, Todo?>,
     private val todoToTodoDtoConverter: Converter<Todo, TodoDto?>,
 ) : CreateTodoUseCase, GetTodoUseCase {
+
+    private val log = LoggerFactory.getLogger(TodoService::class.java)
+
     override fun createTodo(createTodoDto: CreateTodoDto): TodoDto {
         val todo = convertOrThrow(createTodoDto, TodoBadRequestError::class)
+        log.debug("Saving todo to db")
         val savedTodo = repo.create(todo)
+        log.debug("Saved todo to db")
         return convertOrThrow(savedTodo, TodoUnexpectedError::class)
     }
 

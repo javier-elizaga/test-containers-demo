@@ -1,0 +1,9 @@
+application:
+  test-containers:
+    kafka-image: confluentinc/cp-kafka:6.0.0
+    schema-registry-image: confluentinc/cp-schema-registry:6.0.0
+
+  kafka:
+    create-todo:
+      # Kafka Listeners are overridden for tests
+      auto-start: false

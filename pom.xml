@@ -18,10 +18,15 @@
   <properties>
     <java.version>11</java.version>
     <kotlin.version>1.5.21</kotlin.version>
+    <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+    <ojdbc11.version>21.1.0.0</ojdbc11.version>
+    <avro-maven-plugin.version>1.10.2</avro-maven-plugin.version>
+    <kafka-avro-serializer.version>6.2.0</kafka-avro-serializer.version>
     <springfox.version>3.0.0</springfox.version>
     <testcontainers.version>1.16.0</testcontainers.version>
     <jacoco.version>0.8.7</jacoco.version>
     <ktling.version>0.42.1</ktling.version>
+
   </properties>
   <dependencies>
     <dependency>
@@ -35,6 +40,15 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.kafka</groupId>
+      <artifactId>spring-kafka</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.confluent</groupId>
+      <artifactId>kafka-avro-serializer</artifactId>
+      <version>${kafka-avro-serializer.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
@@ -56,7 +70,7 @@
     <dependency>
       <groupId>com.oracle.database.jdbc</groupId>
       <artifactId>ojdbc11</artifactId>
-      <version>21.1.0.0</version>
+      <version>${ojdbc11.version}</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
@@ -67,6 +81,11 @@
       <artifactId>spring-boot-devtools</artifactId>
       <scope>runtime</scope>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -91,7 +110,12 @@
       <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>kafka</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.mockito.kotlin</groupId>
       <artifactId>mockito-kotlin</artifactId>
@@ -101,11 +125,28 @@
   </dependencies>
   <build>
     <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
-    <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <version>${avro-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <sourceDirectory>${project.basedir}/src/main/resources/avro</sourceDirectory>
+          <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+          <stringType>String</stringType>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
@@ -131,6 +172,26 @@
             <version>${kotlin.version}</version>
           </dependency>
         </dependencies>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>test-compile</id>
+            <goals>
+              <goal>test-compile</goal>
+            </goals>
+            <configuration>
+              <sourceDirs>
+                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                <sourceDir>${project.basedir}/src/test/it</sourceDir>
+              </sourceDirs>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -138,7 +199,7 @@
         <version>${jacoco.version}</version>
         <configuration>
           <excludes>
-            <exclude>**/BeanConfiguration.class</exclude>
+            <exclude>**/*Configuration.class</exclude>
             <exclude>**/model/*</exclude>
             <exclude>**/config/*</exclude>
 
@@ -224,6 +285,39 @@
           </dependency>
         </dependencies>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*IT.java</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+  <repositories>
+    <repository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven/</url>
+    </repository>
+  </repositories>
 </project>

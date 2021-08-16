@@ -1,4 +1,4 @@
-package com.je.demo.testcontainers.com.je.demo.testcontainers.config
+package com.je.demo.testcontainers.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.jdbc.DataSourceBuilder
@@ -12,7 +12,7 @@ import javax.sql.DataSource
 
 @TestConfiguration
 @Profile("oracle")
-class OracleContainerConfiguration(
+class OracleTestContainersConfiguration(
     @Value("\${application.test-containers.oracle-image}") private val oracleImage: String,
 ) {
 

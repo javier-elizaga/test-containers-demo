@@ -1,0 +1,14 @@
+{
+    "namespace": "com.je.demo.testcontainers.avro",
+    "type": "record",
+    "name": "CreateTodoEvent",
+    "fields": [
+        {
+            "name": "description",
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    ]
+}
